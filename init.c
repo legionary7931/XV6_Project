@@ -7,8 +7,7 @@
 
 char *argv[] = { "sh", 0 };
 
-int
-main(void)
+int main(void)
 {
   int pid, wpid;
 
@@ -21,6 +20,10 @@ main(void)
 
   for(;;){
     printf(1, "init: starting sh\n");
+    printf(1, "Student ID: 2019312433\n");
+    printf(1, "Name: Jaehyun Cho\n");
+    printf(1, "Have a nice day\n");
+    
     pid = fork();
     if(pid < 0){
       printf(1, "init: fork failed\n");

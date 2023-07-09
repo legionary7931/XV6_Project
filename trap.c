@@ -14,6 +14,7 @@ extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
 
+
 void
 tvinit(void)
 {
@@ -77,6 +78,12 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+    //cprintf("\npage fault occurred\n");
+    //cprintf("err: %d\n", tf->err);
+    if(pageFaultHandler(tf->err, rcr2()) != -1){
+      break;
+    }
 
   //PAGEBREAK: 13
   default:
@@ -102,10 +109,19 @@ trap(struct trapframe *tf)
 
   // Force process to give up CPU on clock tick.
   // If interrupts were on while locks held, would need to check nlock.
-  if(myproc() && myproc()->state == RUNNING &&
-     tf->trapno == T_IRQ0+IRQ_TIMER)
-    yield();
-
+  if(myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER){
+ 
+    // 하나의 time interrupt마다 1tick씩 증가
+    // 현재까지의 작업 시간(currentRunTime)이 할당받은 time slice보다 크다면 yield
+    myproc()->totalRunTime += 1000;
+    myproc()->currentRunTime += 1000; 
+    //cprintf("currentRunTime: %d, timeSlice: %d\n", myproc()->currentRunTime, myproc()->timeSlice);
+    if(myproc()->currentRunTime >= myproc()->timeSlice) {
+      //cprintf("currentRunTime: %d, timeSlice: %d\n", myproc()->currentRunTime, myproc()->timeSlice);
+      yield();
+    }
+  }
+    
   // Check if the process has been killed since we yielded
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
     exit();

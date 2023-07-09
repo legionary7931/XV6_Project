@@ -89,3 +89,68 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int sys_getnice(void){
+  int pid;
+
+  if(argint(0, &pid) < 0){
+    return -1;
+  } // if getting parameters of setnice failed, return -1
+
+  return getnice(pid); // else, return true system call in proc.c
+}
+
+int sys_setnice(void){
+  int pid; 
+  int value;
+
+  if(argint(0, &pid) < 0){ 
+    return -1;
+  } // if getting parameters of setnice failed, return -1
+
+  if(argint(1, &value) < 0){
+    return -1;
+  } // if getting parameters of setnice failed, return -1
+
+  return setnice(pid, value); // else, return true system call in proc.c
+}
+
+int sys_ps(void){
+  int pid;
+
+  if(argint(0, &pid) < 0){
+    return -1;
+  }
+  ps(pid);
+  return 0;
+}
+
+int sys_mmap(void){
+  int addr;
+  int length, prot, flags, fd, offset;
+
+  if(argint(0, &addr)<0){
+    return 0;
+  }
+
+  if(argint(1, &length)<0 || argint(2, &prot)<0 || argint(3, &flags)<0 || argint(4, &fd)<0 || argint(5, &offset)<0){
+    return 0;
+  }
+
+  return mmap(addr, length, prot, flags, fd, offset);
+
+}
+
+int sys_munmap(void){
+  int addr;
+  
+  if(argint(0, &addr) < 0){
+    return -1;
+  }
+
+  return munmap(addr);
+}
+
+int sys_freemem(void){
+  return freemem();
+}

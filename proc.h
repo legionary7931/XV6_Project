@@ -49,6 +49,16 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  /* variables for CFS Scheduler*/
+  int nice;                        // nice value (Added by me!) 
+ 
+  uint currentRunTime;             // 현재 CPU Burst Time동안 실행된 시간(vrunTime의 Δ𝑟𝑢𝑛𝑡𝑖𝑚𝑒을 의미)
+  uint totalRunTime;               // 총 runTime
+  uint vRunTime;                   // weight값 적용된 virtual runtime
+  uint vRunLevel;                  // overflow 해결 위한 장치 (오버플로우 날 때 1씩 증가)
+  uint timeSlice;                  // 해당 프로세스에 할당된 time slice
+   
 };
 
 // Process memory is laid out contiguously, low addresses first:

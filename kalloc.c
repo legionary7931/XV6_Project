@@ -9,6 +9,8 @@
 #include "mmu.h"
 #include "spinlock.h"
 
+int freememCNT;
+
 void freerange(void *vstart, void *vend);
 extern char end[]; // first address after kernel loaded from ELF file
                    // defined by the kernel linker script in kernel.ld
@@ -33,6 +35,7 @@ kinit1(void *vstart, void *vend)
 {
   initlock(&kmem.lock, "kmem");
   kmem.use_lock = 0;
+  freememCNT = 0;
   freerange(vstart, vend);
 }
 
@@ -61,9 +64,11 @@ kfree(char *v)
 {
   struct run *r;
 
+
   if((uint)v % PGSIZE || v < end || V2P(v) >= PHYSTOP)
     panic("kfree");
 
+  freememCNT++;
   // Fill with junk to catch dangling refs.
   memset(v, 1, PGSIZE);
 
@@ -72,6 +77,8 @@ kfree(char *v)
   r = (struct run*)v;
   r->next = kmem.freelist;
   kmem.freelist = r;
+  
+  //cprintf("freememCNT up, %d\n", freememCNT);
   if(kmem.use_lock)
     release(&kmem.lock);
 }
@@ -82,15 +89,22 @@ kfree(char *v)
 char*
 kalloc(void)
 {
+  freememCNT--;
   struct run *r;
-
+  
   if(kmem.use_lock)
     acquire(&kmem.lock);
   r = kmem.freelist;
   if(r)
     kmem.freelist = r->next;
+  
+  //cprintf("freememCNT down, %d\n", freememCNT);
+  
   if(kmem.use_lock)
     release(&kmem.lock);
   return (char*)r;
 }
 
+int getFreeMemCNT(void){
+  return freememCNT;
+}

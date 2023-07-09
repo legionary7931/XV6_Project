@@ -68,6 +68,7 @@ char*           kalloc(void);
 void            kfree(char*);
 void            kinit1(void*, void*);
 void            kinit2(void*, void*);
+int             getFreeMemCNT(void);
 
 // kbd.c
 void            kbdintr(void);
@@ -120,6 +121,13 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+int             getnice(int);
+int             setnice(int, int);
+void            ps(int);
+uint            mmap(uint, int, int, int, int, int);
+int             munmap(uint);
+int             freemem(void);
+int             pageFaultHandler(uint, uint);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
@@ -171,6 +179,8 @@ void            uartintr(void);
 void            uartputc(int);
 
 // vm.c
+typedef uint pte_t;
+
 void            seginit(void);
 void            kvmalloc(void);
 pde_t*          setupkvm(void);
@@ -185,6 +195,8 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
+int             mappages(pde_t*, void*, uint, uint, int);
+pte_t*          walkpgdir(pde_t*, const void*, int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
